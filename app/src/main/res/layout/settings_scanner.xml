@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingBottom="40dp"
+    android:background="@color/white"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <ImageView
+        android:id="@+id/closeIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_margin="20dp"
+        android:src="@drawable/baseline_close_24"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:textColor="@color/black"
+        android:text="Задайте частоту"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/frequencyValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/black"
+        android:textSize="16sp"
+        android:text="0"/>
+    <SeekBar
+        android:id="@+id/seekBarFrequency"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp" />
+
+    <TextView
+        android:id="@+id/lowFrequencyValue"
+        android:layout_width="wrap_content"
+        android:textColor="@color/black"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:textSize="16sp"
+        android:text="0"/>
+    <SeekBar
+        android:id="@+id/seekBarLowFrequency"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/black"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="10dp"
+        android:text="Укажите рабочий цикл"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/dutyCycleValue"
+        android:layout_width="wrap_content"
+        android:textColor="@color/black"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:text="0"/>
+
+    <SeekBar
+        android:id="@+id/seekBarDutyCycle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/black"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="10dp"
+        android:text="Количество сигналов пачкой"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/signalsValue"
+        android:layout_width="wrap_content"
+        android:textColor="@color/black"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:text="4"/>
+
+    <SeekBar
+        android:id="@+id/seekBarSignals"
+        android:layout_width="match_parent"
+        android:progress="25"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp" />
+
+</LinearLayout>
