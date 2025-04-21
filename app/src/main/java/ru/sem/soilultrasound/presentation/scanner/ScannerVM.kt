@@ -25,16 +25,27 @@ class ScannerVM @Inject constructor(
     val date = _date.asStateFlow()
 
     private var count = 4
+    private var currentStartGeneratedTime: Long = 0
 
     init {
         viewModelScope.launch() {
             date.collect() {
                 it.peekContentIfNotHandled()?.let { data ->
-                    val wordList = data.split('\n', ',')
-                    if (wordList[0] == RESULT_SCANNING) {
-                        _state.value = _state.value.copy(showResultScanning = getPoints(wordList))
-                    }
+                    handleMessageServer(data)
                 }
+            }
+        }
+    }
+
+    private fun handleMessageServer(msg: String) {
+        val wordList = msg.split('\n', ',', ':')
+        when (wordList[0]) {
+            RESULT_SCANNING -> {
+                _state.value = _state.value.copy(showResultScanning = getPoints(wordList))
+            }
+
+            START_GENERATED_TIME -> {
+                currentStartGeneratedTime = wordList[1].toLong()
             }
         }
     }
@@ -43,14 +54,21 @@ class ScannerVM @Inject constructor(
         val mutableData = data.toMutableList()
         mutableData.removeAt(0)
         mutableData.remove("")
-        val dataInt = mutableData.map { it.toInt().toDouble() }
         var ix = 0
         val listPoint = mutableListOf<DataPoint>()
-        repeat(dataInt.size / 2) {
-            listPoint.add(DataPoint(dataInt[ix++], dataInt[ix++]))
+        repeat(mutableData.size / 2) {
+            //TODO Нужно высчитать положение по оси Y
+            listPoint.add(DataPoint(0.4, getPosition(mutableData[ix++].toLong())))
         }
         return listPoint
     }
+
+    private fun getPosition(time: Long): Double{
+        val c = 331.46 //TODO Скорость звука в среде
+        val t = time - currentStartGeneratedTime //Время пути
+        return c * t / 2
+    }
+
 
     fun startScanning() {
         val ip = settingsRepository.getScannerIp()
@@ -92,5 +110,6 @@ class ScannerVM @Inject constructor(
     companion object {
         const val SIGNAL_MCS = 25
         const val RESULT_SCANNING = "result_scanning"
+        const val START_GENERATED_TIME = "start_generated_time"
     }
 }
