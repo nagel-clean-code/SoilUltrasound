@@ -5,7 +5,7 @@ buildscript {
     ext.room_version = "2.6.0"
     ext.hilt_version = "2.49"
     dependencies {
-        classpath 'com.google.gms:google-services:4.4.1'
+        classpath 'com.google.gms:google-services:4.4.2'
         classpath 'com.google.dagger:hilt-android-gradle-plugin:2.46.1'
         classpath "com.android.tools.build:gradle:$agp_version"
     }
