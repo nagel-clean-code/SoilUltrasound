@@ -14,6 +14,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import ru.sem.soilultrasound.databinding.FragmentScannerBinding
 import ru.sem.soilultrasound.navigator.BaseScreen
 import ru.sem.soilultrasound.presentation.compose.PointPlotter
+import ru.sem.soilultrasound.presentation.compose.PointsWrapper
 import ru.sem.soilultrasound.utils.collectStarted
 import ru.sem.soilultrasound.utils.showWarning
 
@@ -58,13 +59,13 @@ class ScannerFragment : Fragment() {
         }
         initSettingsScreen()
         viewModel.state.collectStarted(viewLifecycleOwner, ::handleState)
-        viewModel.date.collectStarted(viewLifecycleOwner) { event ->
-            event.getContentIfNotHandled()?.let {
-                with(binding.outputTv) {
-                    text = "$it"
-                }
-            }
-        }
+//        viewModel.date.collectStarted(viewLifecycleOwner) { event -> //TODO для отслеживания сообщений вебсокета
+//            event.getContentIfNotHandled()?.let {
+//                with(binding.outputTv) {
+//                    text = "$it"
+//                }
+//            }
+//        }
     }
 
     private fun handleState(state: ScannerState) {
@@ -76,7 +77,7 @@ class ScannerFragment : Fragment() {
                 state.showResultScanning.forEach {
                     Log.d("DKSDKKSD:", "x:${it.x} y:${it.y}")
                 }
-              //  PointPlotter(state.showResultScanning)
+                PointPlotter(PointsWrapper(state.showResultScanning))
             }
         }
     }

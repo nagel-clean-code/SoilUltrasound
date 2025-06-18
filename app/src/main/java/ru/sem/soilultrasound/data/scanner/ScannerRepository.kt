@@ -1,6 +1,6 @@
 package ru.sem.soilultrasound.data.scanner
 
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import okhttp3.OkHttpClient
 import ru.sem.soilultrasound.utils.Event
 import javax.inject.Inject
@@ -11,7 +11,7 @@ class ScannerRepository @Inject constructor(
     private val httpClient: OkHttpClient
 ) {
     private var scannerWebsocket: ScannerWebsocket? = null
-    private val data = MutableStateFlow(Event(""))
+    private val data = MutableSharedFlow<Event<String>>(extraBufferCapacity = 1024)
 
     suspend fun startWebSocket(url: String) {
         scannerWebsocket = ScannerWebsocket(url, httpClient)

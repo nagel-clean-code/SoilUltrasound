@@ -1,11 +1,16 @@
 package ru.sem.soilultrasound.presentation.scanner
 
+import android.util.Log
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import ru.sem.soilultrasound.data.scanner.ScannerRepository
@@ -22,14 +27,13 @@ class ScannerVM @Inject constructor(
     val state = _state.asStateFlow()
 
     private val _date = scannerRepository.getDateFlow()
-    val date = _date.asStateFlow()
+    val messages: SharedFlow<Event<String>> = _date.asSharedFlow()
 
     private var count = 4
-    private var currentStartGeneratedTime: Long = 0
 
     init {
-        viewModelScope.launch() {
-            date.collect() {
+        viewModelScope.launch(Dispatchers.Default) {
+            messages.collect() {
                 it.peekContentIfNotHandled()?.let { data ->
                     handleMessageServer(data)
                 }
@@ -38,19 +42,18 @@ class ScannerVM @Inject constructor(
     }
 
     private fun handleMessageServer(msg: String) {
+        Log.d("Treed handleMessageServer:", Thread.currentThread().name) //TODO проверить
         val wordList = msg.split('\n', ',', ':')
         when (wordList[0]) {
             RESULT_SCANNING -> {
-                _state.value = _state.value.copy(showResultScanning = getPoints(wordList))
-            }
-
-            START_GENERATED_TIME -> {
-                currentStartGeneratedTime = wordList[1].toLong()
+                val currentStartGeneratedTime = wordList[1].toLong()
+                val listPoints = getPoints(wordList, currentStartGeneratedTime)
+                _state.value = _state.value.copy(showResultScanning = listPoints)
             }
         }
     }
 
-    private fun getPoints(data: List<String>): List<Offset> {
+    private fun getPoints(data: List<String>, currentStartGeneratedTime: Long): List<Offset> {
         val mutableData = data.toMutableList()
         mutableData.removeAt(0)
         mutableData.remove("")
@@ -58,12 +61,13 @@ class ScannerVM @Inject constructor(
         val listPoint = mutableListOf<Offset>()
         repeat(20) {
             ++ix
-            listPoint.add(Offset(0.4f, getPosition(mutableData[ix++].toLong())))
+            val position = getPosition(mutableData[ix++].toLong(), currentStartGeneratedTime)
+            listPoint.add(Offset(0.4f, position))
         }
         return listPoint
     }
 
-    private fun getPosition(time: Long): Float {
+    private fun getPosition(time: Long, currentStartGeneratedTime: Long): Float {
         val c = 0.0343f //TODO Скорость звука в среде
         val t = time - currentStartGeneratedTime //Время пути
         return c * t / 2
@@ -110,6 +114,5 @@ class ScannerVM @Inject constructor(
     companion object {
         const val SIGNAL_MCS = 25
         const val RESULT_SCANNING = "result_scanning"
-        const val START_GENERATED_TIME = "start_generated_time"
     }
 }
