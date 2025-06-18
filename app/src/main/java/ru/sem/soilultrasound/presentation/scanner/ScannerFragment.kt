@@ -1,6 +1,7 @@
 package ru.sem.soilultrasound.presentation.scanner
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,10 +10,10 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import com.jjoe64.graphview.series.LineGraphSeries
 import dagger.hilt.android.AndroidEntryPoint
 import ru.sem.soilultrasound.databinding.FragmentScannerBinding
 import ru.sem.soilultrasound.navigator.BaseScreen
+import ru.sem.soilultrasound.presentation.compose.PointPlotter
 import ru.sem.soilultrasound.utils.collectStarted
 import ru.sem.soilultrasound.utils.showWarning
 
@@ -60,7 +61,7 @@ class ScannerFragment : Fragment() {
         viewModel.date.collectStarted(viewLifecycleOwner) { event ->
             event.getContentIfNotHandled()?.let {
                 with(binding.outputTv) {
-                    text = "$text$it"
+                    text = "$it"
                 }
             }
         }
@@ -71,8 +72,12 @@ class ScannerFragment : Fragment() {
             state.showError?.getContentIfNotHandled()?.let {
                 binding.textError.showWarning()
             }
-            val data = state.showResultScanning.toTypedArray()
-            binding.graph.addSeries(LineGraphSeries(data))
+            binding.graph.setContent {
+                state.showResultScanning.forEach {
+                    Log.d("DKSDKKSD:", "x:${it.x} y:${it.y}")
+                }
+              //  PointPlotter(state.showResultScanning)
+            }
         }
     }
 

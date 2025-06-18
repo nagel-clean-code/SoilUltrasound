@@ -1,8 +1,8 @@
 package ru.sem.soilultrasound.presentation.scanner
 
+import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jjoe64.graphview.series.DataPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,21 +50,21 @@ class ScannerVM @Inject constructor(
         }
     }
 
-    private fun getPoints(data: List<String>): List<DataPoint> {
+    private fun getPoints(data: List<String>): List<Offset> {
         val mutableData = data.toMutableList()
         mutableData.removeAt(0)
         mutableData.remove("")
         var ix = 0
-        val listPoint = mutableListOf<DataPoint>()
-        repeat(mutableData.size / 2) {
-            //TODO Нужно высчитать положение по оси Y
-            listPoint.add(DataPoint(0.4, getPosition(mutableData[ix++].toLong())))
+        val listPoint = mutableListOf<Offset>()
+        repeat(20) {
+            ++ix
+            listPoint.add(Offset(0.4f, getPosition(mutableData[ix++].toLong())))
         }
         return listPoint
     }
 
-    private fun getPosition(time: Long): Double{
-        val c = 331.46 //TODO Скорость звука в среде
+    private fun getPosition(time: Long): Float {
+        val c = 0.0343f //TODO Скорость звука в среде
         val t = time - currentStartGeneratedTime //Время пути
         return c * t / 2
     }

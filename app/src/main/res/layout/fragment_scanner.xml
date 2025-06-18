@@ -17,7 +17,7 @@
             android:layout_weight="1"
             android:orientation="horizontal">
 
-            <com.jjoe64.graphview.GraphView
+            <androidx.compose.ui.platform.ComposeView
                 android:id="@+id/graph"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
