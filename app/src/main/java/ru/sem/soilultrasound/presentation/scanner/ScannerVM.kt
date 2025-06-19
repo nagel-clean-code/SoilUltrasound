@@ -1,13 +1,17 @@
 package ru.sem.soilultrasound.presentation.scanner
 
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
 import android.util.Log
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -26,12 +30,19 @@ class ScannerVM @Inject constructor(
     private val _state = MutableStateFlow(ScannerState())
     val state = _state.asStateFlow()
 
-    private val _date = scannerRepository.getDateFlow()
-    val messages: SharedFlow<Event<String>> = _date.asSharedFlow()
+    private val _messages = scannerRepository.getDateFlow()
+    val messages: SharedFlow<Event<String>> = _messages.asSharedFlow()
 
-    private var count = 4
+    private var wordList: List<String> = emptyList()
+    private var bitmap = Bitmap.createBitmap(BITMAP_WIDTH, BITMAP_HEIGHT, Bitmap.Config.ARGB_8888)
+    private var canvas = Canvas(bitmap)
+    private val paint = Paint().apply {
+        color = Color.Black.toArgb()
+        style = Paint.Style.FILL
+    }
 
     init {
+        connectionWs()
         viewModelScope.launch(Dispatchers.Default) {
             messages.collect() {
                 it.peekContentIfNotHandled()?.let { data ->
@@ -43,28 +54,29 @@ class ScannerVM @Inject constructor(
 
     private fun handleMessageServer(msg: String) {
         Log.d("Treed handleMessageServer:", Thread.currentThread().name) //TODO проверить
-        val wordList = msg.split('\n', ',', ':')
+        wordList = msg.split('\n', ',', ':')
         when (wordList[0]) {
             RESULT_SCANNING -> {
-                val currentStartGeneratedTime = wordList[1].toLong()
-                val listPoints = getPoints(wordList, currentStartGeneratedTime)
-                _state.value = _state.value.copy(showResultScanning = listPoints)
+                _state.value = _state.value.copy(pointBitmap = createBitmap())
             }
         }
     }
 
-    private fun getPoints(data: List<String>, currentStartGeneratedTime: Long): List<Offset> {
-        val mutableData = data.toMutableList()
+    private fun createBitmap(): ImageBitmap {
+        if (wordList.isEmpty()) return bitmap.asImageBitmap()
+        val currentStartGeneratedTime = wordList[1].toLong()
+        val mutableData = wordList.toMutableList()
         mutableData.removeAt(0)
         mutableData.remove("")
+        mutableData.removeAt(0)//TODO проверить работает ли
         var ix = 0
-        val listPoint = mutableListOf<Offset>()
-        repeat(20) {
-            ++ix
-            val position = getPosition(mutableData[ix++].toLong(), currentStartGeneratedTime)
-            listPoint.add(Offset(0.4f, position))
+        while (ix < mutableData.size) {
+            val sound = mutableData[ix++].toInt() //TODO нуюно будет для определения цвета
+            val time = mutableData[ix++].toLong()
+            val position = getPosition(time, currentStartGeneratedTime)
+            canvas.drawPoint(0.4f, position, paint)
         }
-        return listPoint
+        return bitmap.asImageBitmap()
     }
 
     private fun getPosition(time: Long, currentStartGeneratedTime: Long): Float {
@@ -73,8 +85,14 @@ class ScannerVM @Inject constructor(
         return c * t / 2
     }
 
+    fun clear() {
+        bitmap = Bitmap.createBitmap(BITMAP_WIDTH, BITMAP_HEIGHT, Bitmap.Config.ARGB_8888)
+        canvas = Canvas(bitmap)
+        wordList = emptyList()
+        _state.value = _state.value.copy(pointBitmap = bitmap.asImageBitmap())
+    }
 
-    fun startScanning() {
+    private fun connectionWs() {
         val ip = settingsRepository.getScannerIp()
         if (ip.isNullOrBlank()) {
             _state.value = _state.value.copy(showError = Event(Any()))
@@ -85,34 +103,15 @@ class ScannerVM @Inject constructor(
         }
     }
 
-    private var jobFrequency: Job? = null
-    private var jobDutyCycle: Job? = null
-    fun setFrequency(value: Int) {
-        jobFrequency?.cancel()
-        jobFrequency = viewModelScope.launch() {
-            scannerRepository.sendFrequency(value)
-        }
-    }
-
-    fun setDutyCycle(value: Int) {
-        jobDutyCycle?.cancel()
-        jobDutyCycle = viewModelScope.launch() {
-            scannerRepository.sendDutyCycle(value)
-        }
-    }
-
-    fun setupSignalsCount(count: Int) {
-        this.count = count
-    }
-
     fun sendSignals() {
         viewModelScope.launch() {
-            scannerRepository.sendSignals(count * SIGNAL_MCS)
+            scannerRepository.sendSignals()
         }
     }
 
     companion object {
-        const val SIGNAL_MCS = 25
+        private const val BITMAP_WIDTH = 1000
+        private const val BITMAP_HEIGHT = 1700
         const val RESULT_SCANNING = "result_scanning"
     }
 }

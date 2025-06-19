@@ -14,6 +14,7 @@ class ScannerRepository @Inject constructor(
     private val data = MutableSharedFlow<Event<String>>(extraBufferCapacity = 1024)
 
     suspend fun startWebSocket(url: String) {
+        if (scannerWebsocket != null) return
         scannerWebsocket = ScannerWebsocket(url, httpClient)
         messageProcessing()
     }
@@ -25,16 +26,5 @@ class ScannerRepository @Inject constructor(
     }
 
     fun getDateFlow() = data
-
-    fun sendDutyCycle(value: Int) {
-        scannerWebsocket?.sendMessage("setDutyCycle $value")
-    }
-
-    fun sendSignals(value: Int) {
-        scannerWebsocket?.sendMessage("generateSignals $value")
-    }
-
-    fun sendFrequency(value: Int) {
-        scannerWebsocket?.sendMessage("setFreq $value")
-    }
+    fun sendSignals() = scannerWebsocket?.sendMessage("generateSignals")
 }

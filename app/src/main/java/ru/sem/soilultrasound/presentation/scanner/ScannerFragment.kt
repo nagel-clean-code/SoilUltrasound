@@ -1,7 +1,6 @@
 package ru.sem.soilultrasound.presentation.scanner
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,7 +13,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import ru.sem.soilultrasound.databinding.FragmentScannerBinding
 import ru.sem.soilultrasound.navigator.BaseScreen
 import ru.sem.soilultrasound.presentation.compose.PointPlotter
-import ru.sem.soilultrasound.presentation.compose.PointsWrapper
 import ru.sem.soilultrasound.utils.collectStarted
 import ru.sem.soilultrasound.utils.showWarning
 
@@ -41,11 +39,11 @@ class ScannerFragment : Fragment() {
 
     private fun initListeners() {
         with(binding) {
+            clear.setOnClickListener {
+                viewModel.clear()
+            }
             expand.setOnClickListener {
                 scrollViewOutput.isVisible = scrollViewOutput.isGone
-            }
-            startScanningButton.setOnClickListener {
-                viewModel.startScanning()
             }
             settingsButton.setOnClickListener {
                 settingsScanner.root.isVisible = true
@@ -53,7 +51,7 @@ class ScannerFragment : Fragment() {
             settingsScanner.closeIcon.setOnClickListener {
                 settingsScanner.root.isVisible = false
             }
-            sendPackButton.setOnClickListener {
+            startButton.setOnClickListener {
                 viewModel.sendSignals()
             }
         }
@@ -74,10 +72,7 @@ class ScannerFragment : Fragment() {
                 binding.textError.showWarning()
             }
             binding.graph.setContent {
-                state.showResultScanning.forEach {
-                    Log.d("DKSDKKSD:", "x:${it.x} y:${it.y}")
-                }
-                PointPlotter(PointsWrapper(state.showResultScanning))
+                PointPlotter(state.pointBitmap)
             }
         }
     }
@@ -94,7 +89,6 @@ class ScannerFragment : Fragment() {
                     seekBarLowFrequency.progress = 0
                     val value = progress * MAX_FREQUENCY_VALUE / 100
                     frequencyValue.text = value.toString()
-                    viewModel.setFrequency(value)
                 }
 
                 override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -113,7 +107,6 @@ class ScannerFragment : Fragment() {
                     seekBarFrequency.progress = 0
                     val value = progress * MAX_LOW_FREQUENCY_VALUE / 100
                     lowFrequencyValue.text = value.toString()
-                    viewModel.setFrequency(value)
                 }
 
                 override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -131,7 +124,6 @@ class ScannerFragment : Fragment() {
                 ) {
                     val value = progress * MAX_DUTY_CYCLE_VALUE / 100
                     dutyCycleValue.text = value.toString()
-                    viewModel.setDutyCycle(value)
                 }
 
                 override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -149,7 +141,6 @@ class ScannerFragment : Fragment() {
                 ) {
                     val value = progress * MAX_SIGNALS_COUNT / 100
                     signalsValue.text = value.toString()
-                    viewModel.setupSignalsCount(value)
                 }
 
                 override fun onStartTrackingTouch(seekBar: SeekBar?) {

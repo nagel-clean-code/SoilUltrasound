@@ -47,11 +47,11 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/startScanningButton"
+                android:id="@+id/startButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|center"
-                android:text="Подключение"
+                android:text="Запуск"
                 android:textSize="16sp" />
 
             <Button
@@ -76,11 +76,11 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/sendPackButton"
+                android:id="@+id/clear"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|center"
-                android:text="Отправить пачку"
+                android:text="Сброс"
                 android:textSize="16sp" />
         </LinearLayout>
     </LinearLayout>
