@@ -12,6 +12,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -21,6 +22,8 @@ import ru.sem.soilultrasound.data.scanner.ScannerRepository
 import ru.sem.soilultrasound.data.settings.SettingsRepository
 import ru.sem.soilultrasound.utils.Event
 import javax.inject.Inject
+import kotlin.math.cos
+import kotlin.math.sin
 
 @HiltViewModel
 class ScannerVM @Inject constructor(
@@ -34,6 +37,7 @@ class ScannerVM @Inject constructor(
     val messages: SharedFlow<Event<String>> = _messages.asSharedFlow()
 
     private var wordList: List<String> = emptyList()
+
     private var bitmap = Bitmap.createBitmap(BITMAP_WIDTH, BITMAP_HEIGHT, Bitmap.Config.ARGB_8888)
     private var canvas = Canvas(bitmap)
     private val paint = Paint().apply {
@@ -48,6 +52,13 @@ class ScannerVM @Inject constructor(
                 it.peekContentIfNotHandled()?.let { data ->
                     handleMessageServer(data)
                 }
+            }
+        }
+        viewModelScope.launch {
+            wordList = listOf("100", "200", "300", "600", "900", "1200")
+            repeat(100) {
+                _state.value = _state.value.copy(pointBitmap = createBitmap())
+                delay(1000)
             }
         }
     }
@@ -73,8 +84,11 @@ class ScannerVM @Inject constructor(
         while (ix < mutableData.size) {
             val sound = mutableData[ix++].toInt() //TODO нуюно будет для определения цвета
             val time = mutableData[ix++].toLong()
+            val alpha = mutableData[ix++].toFloat()
             val position = getPosition(time, currentStartGeneratedTime)
-            canvas.drawPoint(0.4f, position, paint)
+            val x = rotationCoordinateX(position, alpha)
+            val y = rotationCoordinateY(position, alpha)
+            canvas.drawPoint(x, y, paint)
         }
         return bitmap.asImageBitmap()
     }
@@ -84,6 +98,9 @@ class ScannerVM @Inject constructor(
         val t = time - currentStartGeneratedTime //Время пути
         return c * t / 2
     }
+
+    private fun rotationCoordinateX(y: Float, alpha: Float) = CENTER_X - (y * sin(alpha))
+    private fun rotationCoordinateY(y: Float, alpha: Float) = (y * cos(alpha))
 
     fun clear() {
         bitmap = Bitmap.createBitmap(BITMAP_WIDTH, BITMAP_HEIGHT, Bitmap.Config.ARGB_8888)
@@ -110,6 +127,7 @@ class ScannerVM @Inject constructor(
     }
 
     companion object {
+        private const val CENTER_X = 500f
         private const val BITMAP_WIDTH = 1000
         private const val BITMAP_HEIGHT = 1700
         const val RESULT_SCANNING = "result_scanning"
