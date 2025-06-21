@@ -27,4 +27,5 @@ class ScannerRepository @Inject constructor(
 
     fun getDateFlow() = data
     fun sendSignals() = scannerWebsocket?.sendMessage("generateSignals")
+    fun stopScanning() =  scannerWebsocket?.sendMessage("stopScanning")
 }

@@ -103,6 +103,7 @@ class ScannerVM @Inject constructor(
     private fun rotationCoordinateY(y: Float, alpha: Float) = (y * cos(alpha))
 
     fun clear() {
+        scannerRepository.stopScanning()
         bitmap = Bitmap.createBitmap(BITMAP_WIDTH, BITMAP_HEIGHT, Bitmap.Config.ARGB_8888)
         canvas = Canvas(bitmap)
         wordList = emptyList()
