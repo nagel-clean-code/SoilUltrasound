@@ -13,7 +13,6 @@
 
 package ru.sem.soilultrasound.di
 
-import androidx.annotation.Nullable
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
@@ -33,7 +32,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideConverterFactory(@Nullable gson: Gson): Converter.Factory {
+    fun provideConverterFactory(gson: Gson): Converter.Factory {
         return GsonConverterFactory.create(gson)
     }
 

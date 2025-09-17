@@ -54,13 +54,13 @@ class ScannerVM @Inject constructor(
                 }
             }
         }
-        viewModelScope.launch {
-            wordList = listOf("100", "200", "300", "600", "900", "1200")
-            repeat(100) {
-                _state.value = _state.value.copy(pointBitmap = createBitmap())
-                delay(1000)
-            }
-        }
+//        viewModelScope.launch {
+//            wordList = listOf("100", "200", "300", "600", "900", "1200")
+//            repeat(100) {
+//                _state.value = _state.value.copy(pointBitmap = createBitmap())
+//                delay(1000)
+//            }
+//        }
     }
 
     private fun handleMessageServer(msg: String) {
@@ -68,7 +68,8 @@ class ScannerVM @Inject constructor(
         wordList = msg.split('\n', ',', ':')
         when (wordList[0]) {
             RESULT_SCANNING -> {
-                _state.value = _state.value.copy(pointBitmap = createBitmap())
+
+//                _state.value = _state.value.copy(pointBitmap = createBitmap())
             }
         }
     }
@@ -122,6 +123,7 @@ class ScannerVM @Inject constructor(
     }
 
     fun sendSignals() {
+        connectionWs()
         viewModelScope.launch() {
             scannerRepository.sendSignals()
         }

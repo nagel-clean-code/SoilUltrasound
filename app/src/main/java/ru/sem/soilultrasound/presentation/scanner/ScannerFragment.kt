@@ -4,12 +4,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ScrollView
 import android.widget.SeekBar
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import ru.sem.soilultrasound.databinding.FragmentScannerBinding
 import ru.sem.soilultrasound.navigator.BaseScreen
 import ru.sem.soilultrasound.presentation.compose.PointPlotter
@@ -40,6 +43,7 @@ class ScannerFragment : Fragment() {
     private fun initListeners() {
         with(binding) {
             clear.setOnClickListener {
+                binding.outputTv.text = ""
                 viewModel.clear()
             }
             expand.setOnClickListener {
@@ -57,13 +61,18 @@ class ScannerFragment : Fragment() {
         }
         initSettingsScreen()
         viewModel.state.collectStarted(viewLifecycleOwner, ::handleState)
-//        viewModel.date.collectStarted(viewLifecycleOwner) { event -> //TODO для отслеживания сообщений вебсокета
-//            event.getContentIfNotHandled()?.let {
-//                with(binding.outputTv) {
-//                    text = "$it"
-//                }
-//            }
-//        }
+        MainScope().launch {
+            viewModel.messages.collect() { event -> //TODO для отслеживания сообщений вебсокета
+                event.getContentIfNotHandled()?.let {
+                    with(binding.outputTv) {
+                        text = binding.outputTv.text.toString() + "$it"
+                        binding.scrollViewOutput.post {
+                            binding.scrollViewOutput.fullScroll(ScrollView.FOCUS_DOWN)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun handleState(state: ScannerState) {
@@ -79,8 +88,7 @@ class ScannerFragment : Fragment() {
 
     private fun initSettingsScreen() {
         with(binding.settingsScanner) {
-            seekBarFrequency.setOnSeekBarChangeListener(object :
-                SeekBar.OnSeekBarChangeListener {
+            seekBarFrequency.setOnSeekBarChangeListener(object : SimpleSeekBarChangeListener() {
                 override fun onProgressChanged(
                     seekBar: SeekBar?,
                     progress: Int,
@@ -90,15 +98,8 @@ class ScannerFragment : Fragment() {
                     val value = progress * MAX_FREQUENCY_VALUE / 100
                     frequencyValue.text = value.toString()
                 }
-
-                override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                }
-
-                override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                }
             })
-            seekBarLowFrequency.setOnSeekBarChangeListener(object :
-                SeekBar.OnSeekBarChangeListener {
+            seekBarLowFrequency.setOnSeekBarChangeListener(object : SimpleSeekBarChangeListener() {
                 override fun onProgressChanged(
                     seekBar: SeekBar?,
                     progress: Int,
@@ -108,15 +109,8 @@ class ScannerFragment : Fragment() {
                     val value = progress * MAX_LOW_FREQUENCY_VALUE / 100
                     lowFrequencyValue.text = value.toString()
                 }
-
-                override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                }
-
-                override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                }
             })
-            seekBarDutyCycle.setOnSeekBarChangeListener(object :
-                SeekBar.OnSeekBarChangeListener {
+            seekBarDutyCycle.setOnSeekBarChangeListener(object : SimpleSeekBarChangeListener() {
                 override fun onProgressChanged(
                     seekBar: SeekBar?,
                     progress: Int,
@@ -125,15 +119,8 @@ class ScannerFragment : Fragment() {
                     val value = progress * MAX_DUTY_CYCLE_VALUE / 100
                     dutyCycleValue.text = value.toString()
                 }
-
-                override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                }
-
-                override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                }
             })
-            seekBarSignals.setOnSeekBarChangeListener(object :
-                SeekBar.OnSeekBarChangeListener {
+            seekBarSignals.setOnSeekBarChangeListener(object : SimpleSeekBarChangeListener() {
                 override fun onProgressChanged(
                     seekBar: SeekBar?,
                     progress: Int,
@@ -142,14 +129,14 @@ class ScannerFragment : Fragment() {
                     val value = progress * MAX_SIGNALS_COUNT / 100
                     signalsValue.text = value.toString()
                 }
-
-                override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                }
-
-                override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                }
             })
         }
+    }
+
+    private abstract class SimpleSeekBarChangeListener : SeekBar.OnSeekBarChangeListener {
+        override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+        override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        abstract override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean)
     }
 
     companion object {
